@@ -1,6 +1,7 @@
 # %%
 import requests
 from openai import OpenAI
+from minsearch import Index
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -70,3 +71,37 @@ for course in courses_raw:
 len(documents)
 # %%
 documents[0]
+# %%
+# Create an index for the documents
+index = Index(
+    text_fields=["question", "section", "answer"],
+    keyword_fields=["course"]
+)
+
+index.fit(documents)
+# %%
+
+question = "I just discovered the course. Can I join now?"
+
+search_results = index.search(
+    question,
+    boost_dict={"question": 2.0, "section": 0.5},
+    filter_dict={"course": "llm-zoomcamp"},
+    num_results=5
+)
+
+search_results
+# %%
+[doc["question"] for doc in search_results]
+# %%
+def search(question, course="llm-zoomcamp"):
+    boost_dict = {"question": 2.0, "section": 0.5}
+    filter_dict = {"course": course}
+
+    return index.search(
+        question,
+        boost_dict=boost_dict,
+        filter_dict=filter_dict,
+        num_results=5
+    )
+# %%
